@@ -4,7 +4,7 @@ const {tweetScraper} = require("./tweetScraper");
 
 const app = express();
 
-const PORT = process.env.POSRT || 4000;
+const PORT = process.env.PORT || 4000;
 
 app.get("/", (req, res) => {
     res.send("Rendering Tweet Scraper !!");
