@@ -1,11 +1,24 @@
 const puppeteer = require('puppeteer');
+require("dotenv").config();
 
 const tweetScraper = async (res) => {
     // Launch the browser and open a new blank page
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+    const browser = await puppeteer.launch({
+        args: [
+          "--disable-setuid-sandbox",
+          "--no-sandbox",
+          "--single-process",
+          "--no-zygote",
+        ],
+        executablePath:
+          process.env.NODE_ENV === "production"
+            ? process.env.PUPPETEER_EXECUTABLE_PATH
+            : puppeteer.executablePath(),
+      });
 
     try {
+        const page = await browser.newPage();
+
         // Navigate the page to a URL
         await page.goto('https://twitter.com/coindesk');
 
@@ -33,7 +46,7 @@ const tweetScraper = async (res) => {
         });
         return tweetData;
     });
-    
+
         // Print the tweet datetimes
         console.log('Tweet datetimes:', tweets);
 
