@@ -1,4 +1,12 @@
 const puppeteer = require('puppeteer');
+const { Client } = require('pg');
+
+const client = new Client({
+    connectionString: 'postgres://sanjay:bhAVfyflB3kzSSgthcdiOMQrgL6sttoL@dpg-cojai3qcn0vc73drqrd0-a.oregon-postgres.render.com/tweetdb_n5bc',
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
 
 const tweetScraper = async () => {
     // Launch the browser and open a new blank page
@@ -38,8 +46,8 @@ const tweetScraper = async () => {
 
                 // Get all text content from div elements with dir="auto" and append to tweetData
                 const tweetTextElements = article.querySelectorAll('div[dir="auto"]');
-                const tweetTexts = Array.from(tweetTextElements).map((element) => element.textContent.trim());
-
+                // const tweetTexts = Array.from(tweetTextElements).map((element) => element.textContent.trim());
+                const tweetTexts = Array.from(tweetTextElements).map((element) => element.textContent.trim().replace(/\n/g, ''));
                 tweetData.push({ datetime, tweetTexts });
             });
             return tweetData;
@@ -48,12 +56,28 @@ const tweetScraper = async () => {
         // Print the tweet datetimes
         console.log('Tweet datetimes:', tweets);
 
+       // Insert scraped data into the database
+        await client.connect();
+        for (const tweet of tweets) {
+            const query = {
+                text: 'INSERT INTO tweets(datetime, text) VALUES($1, $2) ON CONFLICT DO NOTHING',
+                values: [tweet.datetime, tweet.tweetTexts ? tweet.tweetTexts.join('\n') : '']
+            };
+            
+            await client.query(query);
+        }
+        console.log('Data inserted successfully');
+
+        // Close the database connection
+        await client.end();
+
         // Close the browser
         await browser.close();
 
         return tweets;
     } catch (error) {
         console.error('Error during scraping:', error);
+        await client.end();
         return null;
     } finally {
         // Close the browser
