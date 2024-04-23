@@ -2,7 +2,7 @@ name: Tweet Scraper
 
 on:
   schedule:
-    - cron: '*/2 * * * *'  # Run every 5 minutes
+    - cron: '*/1 * * * *'  # Run every 5 minutes
 
 jobs:
   scrape:
