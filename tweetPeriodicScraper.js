@@ -28,7 +28,7 @@ const tweetScraper = async () => {
         // Navigate the page to a URL
         await page.goto('https://twitter.com/coindesk');
 
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 2000));
 
         // Set screen size
         await page.setViewport({ width: 1080, height: 1024 });
@@ -44,24 +44,33 @@ const tweetScraper = async () => {
                 const timeElement = article.querySelector('time');
                 const datetime = timeElement.getAttribute('datetime');
 
+                const URL = timeElement.parentNode.getAttribute('href');
+
                 // Get all text content from div elements with dir="auto" and append to tweetData
                 const tweetTextElements = article.querySelectorAll('div[dir="auto"]');
-                // const tweetTexts = Array.from(tweetTextElements).map((element) => element.textContent.trim());
                 const tweetTexts = Array.from(tweetTextElements).map((element) => element.textContent.trim().replace(/\n/g, ''));
-                tweetData.push({ datetime, tweetTexts });
+                
+                let postImage = "";                
+                const postImageElement = article.querySelector('img[src*="card_img"]')
+                if(postImageElement){
+                    postImage = postImageElement.getAttribute('src');
+                }
+
+                tweetData.push({ datetime, URL, tweetTexts, postImage });
+                
             });
             return tweetData;
         });
 
         // Print the tweet datetimes
-        console.log('Tweet datetimes:', tweets);
+        console.log('Tweet datetimes:', tweets, '\nNumber of tweets:', tweets.length);
 
        // Insert scraped data into the database
         await client.connect();
         for (const tweet of tweets) {
             const query = {
-                text: 'INSERT INTO tweets(datetime, text) VALUES($1, $2) ON CONFLICT DO NOTHING',
-                values: [tweet.datetime, tweet.tweetTexts ? tweet.tweetTexts.join('\n') : '']
+                text: 'INSERT INTO tweets(datetime, text, post_image, url) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING',
+                values: [tweet.datetime, tweet.tweetTexts ? tweet.tweetTexts.join('\n') : '', tweet.postImage, tweet.url]
             };
             
             await client.query(query);

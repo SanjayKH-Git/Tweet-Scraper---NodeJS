@@ -1,5 +1,5 @@
 const express = require('express');
-const {scrapeLogic} = require("./scrapeLogic");
+const {getLatestData} = require("./getLatestData");
 const {tweetScraper} = require("./tweetScraper");
 
 const app = express();
@@ -10,8 +10,8 @@ app.get("/", (req, res) => {
     res.send("Rendering Tweet Scraper !!");
 });
 
-app.get("/scrape", (req, res) => {
-       scrapeLogic(res);
+app.get("/latest", (req, res) => {
+       getLatestData(res);
     });
 
 app.get("/tweetScrape", (req, res) => {
