@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 const { Client } = require('pg');
+const { mailTrapNodeEmail } = require('./mailTrapNodeEmail');
 
 const client = new Client({
     connectionString: 'postgres://sanjay:bhAVfyflB3kzSSgthcdiOMQrgL6sttoL@dpg-cojai3qcn0vc73drqrd0-a.oregon-postgres.render.com/tweetdb_n5bc',
@@ -11,6 +12,7 @@ const client = new Client({
 const tweetScraper = async () => {
     // Launch the browser and open a new blank page
     const browser = await puppeteer.launch({
+        headless: false,
         args: [
             "--disable-setuid-sandbox",
             "--no-sandbox",
@@ -28,13 +30,13 @@ const tweetScraper = async () => {
         // Navigate the page to a URL
         await page.goto('https://twitter.com/coindesk');
 
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
         // Set screen size
         await page.setViewport({ width: 1080, height: 1024 });
 
         // Wait for tweets to load
-        await page.waitForSelector('article');
+        await page.waitForSelector('article', { timeout: 4000 });
 
         // Scrape tweets
         const tweets = await page.evaluate(() => {
@@ -44,8 +46,10 @@ const tweetScraper = async () => {
                 const timeElement = article.querySelector('time');
                 const datetime = timeElement.getAttribute('datetime');
 
-                const URL = timeElement.parentNode.getAttribute('href');
-
+                let URL = timeElement.parentElement.getAttribute('href');
+                if (URL){
+                    URL = "https://twitter.com" + URL;
+                }
                 // Get all text content from div elements with dir="auto" and append to tweetData
                 const tweetTextElements = article.querySelectorAll('div[dir="auto"]');
                 const tweetTexts = Array.from(tweetTextElements).map((element) => element.textContent.trim().replace(/\n/g, ''));
@@ -55,9 +59,9 @@ const tweetScraper = async () => {
                 if(postImageElement){
                     postImage = postImageElement.getAttribute('src');
                 }
-                let hasVideo = article.querySelector('video');
+                let hasVideo = article.querySelector('video');            
 
-                tweetData.push({ datetime, URL, tweetTexts, postImage });
+                tweetData.push({ datetime, URL, tweetTexts, postImage, hasVideo});
                 
             });
             return tweetData;
@@ -69,9 +73,15 @@ const tweetScraper = async () => {
        // Insert scraped data into the database
         await client.connect();
         for (const tweet of tweets) {
+
+            if (tweet.hasVideo){
+                mailTrapNodeEmail(tweet.URL);
+                console.log("POST HAS MAIL");
+            }
+
             const query = {
                 text: 'INSERT INTO tweets(datetime, text, post_image, url) VALUES($1, $2, $3, $4) ON CONFLICT DO NOTHING',
-                values: [tweet.datetime, tweet.tweetTexts ? tweet.tweetTexts.join('\n') : '', tweet.postImage, tweet.url]
+                values: [tweet.datetime, tweet.tweetTexts ? tweet.tweetTexts.join('\n') : '', tweet.postImage, tweet.URL]
             };
             
             await client.query(query);

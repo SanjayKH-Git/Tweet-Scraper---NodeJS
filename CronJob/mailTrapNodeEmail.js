@@ -9,18 +9,20 @@ var transporter = nodemailer.createTransport({
     }
   });
   
-  async function alertMailer() {
+  async function mailTrapNodeEmail(postURL) {
     // send mail with defined transport object
     const info = await transporter.sendMail({
-      from: '"Maddison Foo Koch 👻" <mailtrap@demomailtrap.com>', // sender address
+      from: '"Email Signal 👻" <mailtrap@demomailtrap.com>', // sender address
       to: "sanjaykhegde98@gmail.com", // list of receivers
       subject: "Tweet Signal !!!", // Subject line
       text: "Tweet Post has Video: ", // plain text body
-      html: "<b>Hello world?</b>", // html body
+      html: `<b>Tweet Post has Video:</b> ${postURL}`, // html body
     });
   
     console.log("Message sent: %s", info.messageId);
     // Message sent: <d786aa62-4e0a-070a-47ed-0b0666549519@ethereal.email>
   }
 
-  alertMailer().catch(console.error);
+  // mailTrapNodeEmail().catch(console.error);
+
+  module.exports = { mailTrapNodeEmail };

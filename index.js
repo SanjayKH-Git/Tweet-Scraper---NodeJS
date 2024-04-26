@@ -1,6 +1,5 @@
 const express = require('express');
 const {getLatestData} = require("./getLatestData");
-const {tweetScraper} = require("./tweetScraper");
 
 const app = express();
 
@@ -11,12 +10,10 @@ app.get("/", (req, res) => {
 });
 
 app.get("/latest", (req, res) => {
-       getLatestData(res);
-    });
+    const pages = req.query.pages; // Get the 'pages' query parameter
+    getLatestData(res, pages);
+});
 
-app.get("/tweetScrape", (req, res) => {
-    tweetScraper(res);
-    });
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
