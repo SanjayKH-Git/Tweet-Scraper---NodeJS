@@ -55,6 +55,7 @@ const tweetScraper = async () => {
                 if(postImageElement){
                     postImage = postImageElement.getAttribute('src');
                 }
+                let hasVideo = article.querySelector('video');
 
                 tweetData.push({ datetime, URL, tweetTexts, postImage });
                 
