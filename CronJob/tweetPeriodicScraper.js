@@ -95,7 +95,9 @@ const tweetScraper = async () => {
                 const sanitizedImageName = imageName.replace(/[^\w\s.-]/gi, '') + '.jpg'; // Remove special characters
                 console.error('downloading image:', sanitizedImageName);
 
-                const imageFilePath = path.join(__dirname, 'Saved Images', sanitizedImageName);
+                // const imageFilePath = path.join(__dirname, 'Saved Images', sanitizedImageName);
+                const imageFilePath = path.join(process.env.GITHUB_WORKSPACE, 'CronJob', 'Saved Images', sanitizedImageName);
+
                 try {
                     const response = await axios.get(tweet.postImage, { responseType: 'arraybuffer' });
                     fs.writeFileSync(imageFilePath, response.data);

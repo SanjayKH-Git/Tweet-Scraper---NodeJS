@@ -19,5 +19,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run scraper
-        run: node CronJob/tweetPeriodicScraper.js
+     - name: Run scraper
+      run: node CronJob/tweetPeriodicScraper.js
+      working-directory: ${{ github.workspace }}
+
+      
