@@ -1,5 +1,15 @@
 # Tweet-Scraper---NodeJS
 Node JS based Tweet Scraper (Puppeter)
+### caution: Experimental Project!!
+
+- Periodically scrapes Data from the page https://twitter.com/coindesk
+- NodeJS Puppeter based scraper deployed on GitHub Actions for cron Job
+- Send the Email Alert if Video found on the Twitter Post
+- Store the Post Images on Local/Cloud storage
+- Save the Data in PostgreSQL free instance from Render.com
+- NodeJS Express Server hosted on Remder.com free tier
+- The GET API provides Latest data based on Pages
+
 
 **Architecture:**
 
