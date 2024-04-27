@@ -1,6 +1,9 @@
 const puppeteer = require('puppeteer');
 const { Client } = require('pg');
 const { mailTrapNodeEmail } = require('./mailTrapNodeEmail');
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 const client = new Client({
     connectionString: 'postgres://sanjay:bhAVfyflB3kzSSgthcdiOMQrgL6sttoL@dpg-cojai3qcn0vc73drqrd0-a.oregon-postgres.render.com/tweetdb_n5bc',
@@ -12,7 +15,7 @@ const client = new Client({
 const tweetScraper = async () => {
     // Launch the browser and open a new blank page
     const browser = await puppeteer.launch({
-        // headless: false,
+        headless: false,
         args: [
             "--disable-setuid-sandbox",
             "--no-sandbox",
@@ -85,6 +88,23 @@ const tweetScraper = async () => {
             };
             
             await client.query(query);
+
+            // Save postImage to a directory
+            if (tweet.postImage) {
+                const imageName = path.basename(tweet.postImage);
+                const sanitizedImageName = imageName.replace(/[^\w\s.-]/gi, '') + '.jpg'; // Remove special characters
+                console.error('downloading image:', sanitizedImageName);
+
+                const imageFilePath = path.join(__dirname, 'Saved Images', sanitizedImageName);
+                try {
+                    const response = await axios.get(tweet.postImage, { responseType: 'arraybuffer' });
+                    fs.writeFileSync(imageFilePath, response.data);
+                    console.log(`Image saved to: ${imageFilePath}`);
+                } catch (error) {
+                    console.error('Error downloading image:', error);
+                }
+
+            }
         }
         console.log('Data inserted successfully');
 
